@@ -1,0 +1,16 @@
+{
+  "name": "larsthorup-webdriver-sample",
+  "version": "1.0.0",
+  "author": "Lars Thorup <lars@zealake.com>",
+  "repository" : {
+    "type" : "git",
+    "url" : "http://github.com/larsthorup/webdriver-sample.git"
+  },
+  "dependencies": {
+    "webdriverio": "~2.2.3",
+    "selenium-standalone": "~2.43.1-2.9.0-1"
+  },
+  "scripts": {
+    "start": "node src/main.js"
+  }
+}
