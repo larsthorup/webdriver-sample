@@ -34,37 +34,65 @@ var capabilities = {}; // Note: use defaults
 
 var client = webdriverio.remote(webdriverOptions);
 var urlTimer;
+var currentUrl = '';
 
-client.init(capabilities, function (err, res) {
-    console.log('Browser started');
+var startUrl = 'http://demos.telerik.com/kendo-ui/websushi/';
+var endUrl = 'http://demos.telerik.com/kendo-ui/websushi/#/menu/8';
 
-    // Note: watch for URL changes
-    urlTimer = setInterval(function () {
-        client.url(function (err, res) {
-            console.log('Url: ' + res.value);
-        });
-    }, 1000);
+var sessionConfig = {
+    productNumber: 7
+};
 
-});
-
-
-var listPageHandler = function (productNumber) {
-    var product = $('li.products').eq(productNumber);
+var listPageHandler = function (sessionConfig) {
+    var product = $('li.products').eq(sessionConfig.productNumber);
     var link = product.find('a.view-details');
     link[0].click();
 };
 
-client
-.url('http://demos.telerik.com/kendo-ui/websushi/')
-.title(function(err, res) {
-    console.log('Page title: ' + res.value);
-})
-.pause(3000)
-.execute(listPageHandler, 7)
-.pause(3000, function () {
-    clearInterval(urlTimer)
-})
-.end(function (err, res) {
-    console.log('Browser closed');
-    process.exit(0);
-});
+var pageHandlers = {
+    'http://demos.telerik.com/kendo-ui/websushi/': listPageHandler
+};
+
+client.init(capabilities, onBrowserStarted);
+
+function onBrowserStarted () {
+    console.log('Browser started');
+
+    // Note: watch for URL changes
+    urlTimer = setInterval(watchUrlChanged, 1000);
+
+    // Navigate to start page
+    client.url(startUrl);
+}
+
+function watchUrlChanged () {
+    client.url(function (err, res) {
+        var newUrl = res.value;
+        if(newUrl != currentUrl) {
+            console.log('Navigated to: ' + newUrl);
+            currentUrl = newUrl;
+            if(currentUrl === endUrl) {
+                onDone();
+            } else {
+                onUrlChanged();
+            }
+        }
+    });
+}
+
+function onUrlChanged() {
+    var pageHandler = pageHandlers[currentUrl];
+    if (pageHandler) {
+        client
+        .pause(2000)// ToDo: wait until page is ready
+        .execute(pageHandler, sessionConfig);
+    }
+}
+
+function onDone () {
+    clearInterval(urlTimer);
+    client.end(function () {
+        console.log('Browser closed');
+        process.exit(0);
+    });
+}
