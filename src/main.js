@@ -19,6 +19,7 @@ server.stderr.on('data', function (output) {
     // console.log(line);
     if(line.indexOf('Started SocketListener on 0.0.0.0:4444') > -1) {
         console.log('Selenium started');
+        onSeleniumStarted();
     }
 });
 
@@ -32,7 +33,6 @@ var webdriverOptions = {
 
 var capabilities = {}; // Note: use defaults
 
-var client = webdriverio.remote(webdriverOptions);
 var urlTimer;
 var currentUrl = '';
 
@@ -53,7 +53,12 @@ var pageHandlers = {
     'http://demos.telerik.com/kendo-ui/websushi/': listPageHandler
 };
 
-client.init(capabilities, onBrowserStarted);
+var client;
+
+function onSeleniumStarted() {
+    client = webdriverio.remote(webdriverOptions);
+    client.init(capabilities, onBrowserStarted);
+}
 
 function onBrowserStarted () {
     console.log('Browser started');
